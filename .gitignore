@@ -26,3 +26,9 @@ streamline/__pycache__/ApplyModelJob.cpython-38.pyc
 streamline/__pycache__/DataCompareJob.cpython-38.pyc
 streamline/__pycache__/StatsJob.cpython-38.pyc
 streamline/__pycache__/PDF_ReportJob.cpython-38.pyc
+# Custom
+nohup.out
+*.html
+AutoML-Pipe
+EHRoes
+catboost_info/
