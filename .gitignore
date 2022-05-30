@@ -32,3 +32,6 @@ nohup.out
 AutoML-Pipe
 EHRoes
 catboost_info/
+*.tsv
+*.json
+*.tfevents

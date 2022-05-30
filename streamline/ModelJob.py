@@ -1449,7 +1449,7 @@ def objective_LGB(
     params = {
         "objective": trial.suggest_categorical("objective", param_grid["objective"]),
         "metric": trial.suggest_categorical("metric", param_grid["metric"]),
-        "verbosity": trial.suggest_categorical("verbosity", param_grid["verbosity"]),
+        "verbose": trial.suggest_categorical("verbose", param_grid["verbose"]),
         "boosting_type": trial.suggest_categorical(
             "boosting_type", param_grid["boosting_type"]
         ),
@@ -1459,24 +1459,26 @@ def objective_LGB(
         "max_depth": trial.suggest_int(
             "max_depth", param_grid["max_depth"][0], param_grid["max_depth"][1]
         ),
-        "lambda_l1": trial.suggest_loguniform(
-            "lambda_l1", param_grid["lambda_l1"][0], param_grid["lambda_l1"][1]
+        "reg_alpha": trial.suggest_loguniform(
+            "reg_alpha", param_grid["reg_alpha"][0], param_grid["reg_alpha"][1]
         ),
-        "lambda_l2": trial.suggest_loguniform(
-            "lambda_l2", param_grid["lambda_l2"][0], param_grid["lambda_l2"][1]
+        "reg_lambda": trial.suggest_loguniform(
+            "reg_lambda", param_grid["reg_lambda"][0], param_grid["reg_lambda"][1]
         ),
-        "feature_fraction": trial.suggest_uniform(
-            "feature_fraction",
-            param_grid["feature_fraction"][0],
-            param_grid["feature_fraction"][1],
+        "colsample_bytree": trial.suggest_uniform(
+            "colsample_bytree",
+            param_grid["colsample_bytree"][0],
+            param_grid["colsample_bytree"][1],
         ),
-        "bagging_fraction": trial.suggest_uniform(
-            "bagging_fraction",
-            param_grid["bagging_fraction"][0],
-            param_grid["bagging_fraction"][1],
+        "subsample": trial.suggest_uniform(
+            "subsample",
+            param_grid["subsample"][0],
+            param_grid["subsample"][1],
         ),
-        "bagging_freq": trial.suggest_int(
-            "bagging_freq", param_grid["bagging_freq"][0], param_grid["bagging_freq"][1]
+        "subsample_freq": trial.suggest_int(
+            "subsample_freq",
+            param_grid["subsample_freq"][0],
+            param_grid["subsample_freq"][1],
         ),
         "min_child_samples": trial.suggest_int(
             "min_child_samples",
@@ -1486,13 +1488,10 @@ def objective_LGB(
         "n_estimators": trial.suggest_int(
             "n_estimators", param_grid["n_estimators"][0], param_grid["n_estimators"][1]
         ),
-        "scale_pos_weight": trial.suggest_categorical(
-            "scale_pos_weight", [1.0, classWeight]
+        "n_jobs": trial.suggest_categorical("n_jobs", param_grid["n_jobs"]),
+        "random_state": trial.suggest_categorical(
+            "random_state", param_grid["random_state"]
         ),
-        "num_threads": trial.suggest_categorical(
-            "num_threads", param_grid["num_threads"]
-        ),
-        "random_state": trial.suggest_categorical("seed", param_grid["seed"]),
     }
     return hyper_eval(
         est, x_train, y_train, random_state, hype_cv, params, scoring_metric
