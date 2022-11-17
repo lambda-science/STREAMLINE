@@ -5,7 +5,7 @@ source .venv/bin/activate
 # python streamline/DataPreprocessingMain.py --out-path /home/meyer/code-project/AutoML-Pipe/AutoML-Pipe/results --exp-name myoxia_streamline --run-parallel False --scale False
 # python streamline/FeatureImportanceMain.py --out-path /home/meyer/code-project/AutoML-Pipe/AutoML-Pipe/results --exp-name myoxia_streamline --run-parallel False
 # python streamline/FeatureSelectionMain.py --out-path /home/meyer/code-project/AutoML-Pipe/AutoML-Pipe/results --exp-name myoxia_streamline --run-parallel False --top-features 10
-python streamline/ModelMain.py --out-path /home/meyer/code-project/AutoML-Pipe/AutoML-Pipe/results --exp-name myoxia_streamline --run-parallel False --do-NB --do-LR --do-DT --do-RF --do-GB --do-XGB --do-LGB --do-CGB --do-SVM --do-ANN --do-eLCS --do-XCS --do-ExSTraCS --n-trials 100 --timeout 600 --iter 10000 --N 200
+python streamline/ModelMain.py --out-path /home/meyer/code-project/AutoML-Pipe/AutoML-Pipe/results --exp-name myoxia_streamline --run-parallel False --do-NB True --do-LR True --do-DT True --do-RF True --do-GB True --do-XGB True --do-LGB True --do-CGB True --do-SVM True --do-ANN True --do-eLCS True --do-XCS True --do-ExSTraCS True --n-trials 100 --timeout 600 --iter 10000 --N 200
 # python streamline/StatsMain.py --out-path /myoutputpath --exp-name hcc_demo --run-parallel False
 # python streamline/DataCompareMain.py --out-path /myoutputpath --exp-name hcc_demo --run-parallel False
 # python streamline/PDF_ReportMain.py --out-path /myoutputpath --exp-name hcc_demo --run-parallel False

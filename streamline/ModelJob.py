@@ -3108,7 +3108,7 @@ def hyperparameters(
         "colsample_bytree": [0.1, 1.0],
         "nthread": [1],
         "seed": [random_state],
-        "num_class": [num_classes],
+        "num_class": [3],
     }
 
     # LG Boost (Note: class weight balance is included as option internally (still takes a while on large instance spaces))
