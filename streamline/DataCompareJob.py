@@ -178,7 +178,7 @@ def kruscallWallis(
     label = ["Statistic", "P-Value", "Sig(*)"]
     i = 1
     for dataset in datasets:
-        label.append('Median_D' + str(i))
+        label.append("Median_D" + str(i))
         i += 1
     for algorithm in algorithms:
         kruskal_summary = pd.DataFrame(index=metrics, columns=label)
@@ -195,7 +195,7 @@ def kruscallWallis(
                 td = pd.read_csv(filename)
                 tempArray.append(td[metric])
                 medList.append(td[metric].median())
-            try: #Run Kruscall Wallis
+            try:  # Run Kruscall Wallis
                 result = stats.kruskal(*tempArray)
             except:
                 result = ["NA", 1]
@@ -204,19 +204,32 @@ def kruscallWallis(
             if result[1] < sig_cutoff:
                 kruskal_summary.at[metric, "Sig(*)"] = str("*")
             else:
-                kruskal_summary.at[metric, 'Sig(*)'] = str('')
+                kruskal_summary.at[metric, "Sig(*)"] = str("")
             for j in range(len(medList)):
-                kruskal_summary.at[metric, 'Median_D' + str(j+1)] = str(round(medList[j], 6))
-        #Export analysis summary to .csv file
-        kruskal_summary.to_csv(experiment_path+'/DatasetComparisons/KruskalWallis_'+algorithm+'.csv')
+                kruskal_summary.at[metric, "Median_D" + str(j + 1)] = str(
+                    round(medList[j], 6)
+                )
+        # Export analysis summary to .csv file
+        kruskal_summary.to_csv(
+            experiment_path + "/DatasetComparisons/KruskalWallis_" + algorithm + ".csv"
+        )
 
-def wilcoxonRank(experiment_path,datasets,algorithms,metrics,dataset_directory_paths,name_to_abbrev,sig_cutoff):
-    """ For each algorithm, apply non-parametric Wilcoxon Rank Sum (pairwise comparisons). This tests individual algorithm pairs of original target datasets (for each metric)
+
+def wilcoxonRank(
+    experiment_path,
+    datasets,
+    algorithms,
+    metrics,
+    dataset_directory_paths,
+    name_to_abbrev,
+    sig_cutoff,
+):
+    """For each algorithm, apply non-parametric Wilcoxon Rank Sum (pairwise comparisons). This tests individual algorithm pairs of original target datasets (for each metric)
     to determine if there is a statistically significant difference in performance across CV runs. Test statistic will be zero if all scores from one set are
     larger than the other."""
-    label = ['Metric', 'Data1', 'Data2', 'Statistic', 'P-Value', 'Sig(*)']
-    for i in range(1,3):
-        label.append('Median_Data' + str(i))
+    label = ["Metric", "Data1", "Data2", "Statistic", "P-Value", "Sig(*)"]
+    for i in range(1, 3):
+        label.append("Median_Data" + str(i))
     for algorithm in algorithms:
         master_list = []
         for metric in metrics:
@@ -233,23 +246,28 @@ def wilcoxonRank(experiment_path,datasets,algorithms,metrics,dataset_directory_p
                     td1 = pd.read_csv(file1)
                     set1 = td1[metric]
                     med1 = td1[metric].median()
-                    #Grab info on second dataset
-                    file2 = dataset_directory_paths[y] + '/model_evaluation/' + name_to_abbrev[algorithm] + '_performance.csv'
+                    # Grab info on second dataset
+                    file2 = (
+                        dataset_directory_paths[y]
+                        + "/model_evaluation/"
+                        + name_to_abbrev[algorithm]
+                        + "_performance.csv"
+                    )
                     td2 = pd.read_csv(file2)
                     set2 = td2[metric]
                     ave2 = td2[metric].mean()
                     sd2 = td2[metric].std()
                     # handle error when metric values are equal for both algorithms
                     med2 = td2[metric].median()
-                    #handle error when metric values are equal for both algorithms
+                    # handle error when metric values are equal for both algorithms
                     if set1.equals(set2):  # Check if all nums are equal in sets
                         result = ["NA", 1]
                     else:
                         try:
                             result = stats.wilcoxon(set1, set2)
                         except:
-                            report = ['NA_error',1]
-                    #Summarize test information in list
+                            report = ["NA_error", 1]
+                    # Summarize test information in list
                     tempList.append(str(metric))
                     tempList.append("D" + str(x + 1))
                     tempList.append("D" + str(y + 1))
@@ -261,7 +279,7 @@ def wilcoxonRank(experiment_path,datasets,algorithms,metrics,dataset_directory_p
                     if result[1] < sig_cutoff:
                         tempList.append(str("*"))
                     else:
-                        tempList.append(str(''))
+                        tempList.append(str(""))
                     tempList.append(str(round(med1, 6)))
                     tempList.append(str(round(med2, 6)))
                     master_list.append(tempList)
@@ -286,9 +304,9 @@ def mannWhitneyU(
     """For each algorithm, apply non-parametric Mann Whitney U-test (pairwise comparisons). Mann Whitney tests dataset pairs (for each metric)
     to determine if there is a statistically significant difference in performance across CV runs. Test statistic will be zero if all scores from one set are
     larger than the other."""
-    label = ['Metric', 'Data1', 'Data2', 'Statistic', 'P-Value', 'Sig(*)']
-    for i in range(1,3):
-        label.append('Median_Data' + str(i))
+    label = ["Metric", "Data1", "Data2", "Statistic", "P-Value", "Sig(*)"]
+    for i in range(1, 3):
+        label.append("Median_Data" + str(i))
     for algorithm in algorithms:
         master_list = []
         for metric in metrics:
@@ -305,20 +323,25 @@ def mannWhitneyU(
                     td1 = pd.read_csv(file1)
                     set1 = td1[metric]
                     med1 = td1[metric].median()
-                    #Grab info on second dataset
-                    file2 = dataset_directory_paths[y] + '/model_evaluation/' + name_to_abbrev[algorithm] + '_performance.csv'
+                    # Grab info on second dataset
+                    file2 = (
+                        dataset_directory_paths[y]
+                        + "/model_evaluation/"
+                        + name_to_abbrev[algorithm]
+                        + "_performance.csv"
+                    )
                     td2 = pd.read_csv(file2)
                     set2 = td2[metric]
                     med2 = td2[metric].median()
-                    #handle error when metric values are equal for both algorithms
+                    # handle error when metric values are equal for both algorithms
                     if set1.equals(set2):  # Check if all nums are equal in sets
                         result = ["NA", 1]
                     else:
                         try:
                             result = stats.mannwhitneyu(set1, set2)
                         except:
-                            report = ['NA_error',1]
-                    #Summarize test information in list
+                            report = ["NA_error", 1]
+                    # Summarize test information in list
                     tempList.append(str(metric))
                     tempList.append("D" + str(x + 1))
                     tempList.append("D" + str(y + 1))
@@ -330,7 +353,7 @@ def mannWhitneyU(
                     if result[1] < sig_cutoff:
                         tempList.append(str("*"))
                     else:
-                        tempList.append(str(''))
+                        tempList.append(str(""))
                     tempList.append(str(round(med1, 6)))
                     tempList.append(str(round(med2, 6)))
                     master_list.append(tempList)
@@ -358,8 +381,8 @@ def bestKruscallWallis(
     label = ["Statistic", "P-Value", "Sig(*)"]
     i = 1
     for dataset in datasets:
-        label.append('Best_Alg_D' + str(i))
-        label.append('Median_D' + str(i))
+        label.append("Best_Alg_D" + str(i))
+        label.append("Median_D" + str(i))
         i += 1
     kruskal_summary = pd.DataFrame(index=metrics, columns=label)
     global_data = []
@@ -399,10 +422,14 @@ def bestKruscallWallis(
             kruskal_summary.at[metric, "P-Value"] = str(round("NA", 6))
             kruskal_summary.at[metric, "Sig(*)"] = str("")
         for j in range(len(best_list)):
-            kruskal_summary.at[metric, 'Best_Alg_D' + str(j+1)] = str(best_list[j][0])
-            kruskal_summary.at[metric, 'Median_D' + str(j+1)] = str(round(best_list[j][1], 6))
-    #Export analysis summary to .csv file
-    kruskal_summary.to_csv(experiment_path + '/DatasetComparisons/BestCompare_KruskalWallis.csv')
+            kruskal_summary.at[metric, "Best_Alg_D" + str(j + 1)] = str(best_list[j][0])
+            kruskal_summary.at[metric, "Median_D" + str(j + 1)] = str(
+                round(best_list[j][1], 6)
+            )
+    # Export analysis summary to .csv file
+    kruskal_summary.to_csv(
+        experiment_path + "/DatasetComparisons/BestCompare_KruskalWallis.csv"
+    )
     return global_data
 
 
@@ -419,10 +446,10 @@ def bestMannWhitneyU(
     """For best performing algorithm on a given metric and dataset, apply non-parametric Mann Whitney U-test (pairwise comparisons). Mann Whitney tests dataset pairs (for each metric)
     to determine if there is a statistically significant difference in performance across CV runs. Test statistic will be zero if all scores from one set are
     larger than the other."""
-    label = ['Metric', 'Data1', 'Data2', 'Statistic', 'P-Value', 'Sig(*)']
-    for i in range(1,3):
-        label.append('Best_Alg_Data' + str(i))
-        label.append('Median_Data' + str(i))
+    label = ["Metric", "Data1", "Data2", "Statistic", "P-Value", "Sig(*)"]
+    for i in range(1, 3):
+        label.append("Best_Alg_Data" + str(i))
+        label.append("Median_Data" + str(i))
     master_list = []
     j = 0
     for metric in metrics:
@@ -433,15 +460,15 @@ def bestMannWhitneyU(
                 med1 = global_data[j][1][x][1]
                 set2 = global_data[j][0][y]
                 med2 = global_data[j][1][y][1]
-                #handle error when metric values are equal for both algorithms
+                # handle error when metric values are equal for both algorithms
                 if set1.equals(set2):  # Check if all nums are equal in sets
                     result = ["NA", 1]
                 else:
                     try:
                         result = stats.mannwhitneyu(set1, set2)
                     except:
-                        result = ['NA_error', 1]
-                #Summarize test information in list
+                        result = ["NA_error", 1]
+                # Summarize test information in list
                 tempList.append(str(metric))
                 tempList.append("D" + str(x + 1))
                 tempList.append("D" + str(y + 1))
@@ -482,10 +509,10 @@ def bestWilcoxonRank(
     to determine if there is a statistically significant difference in performance across CV runs. Test statistic will be zero if all scores from one set are
     larger than the other."""
     # Best Mann Whitney (Pairwise comparisons)
-    label = ['Metric', 'Data1', 'Data2', 'Statistic', 'P-Value', 'Sig(*)']
-    for i in range(1,3):
-        label.append('Best_Alg_Data' + str(i))
-        label.append('Median_Data' + str(i))
+    label = ["Metric", "Data1", "Data2", "Statistic", "P-Value", "Sig(*)"]
+    for i in range(1, 3):
+        label.append("Best_Alg_Data" + str(i))
+        label.append("Median_Data" + str(i))
     master_list = []
     j = 0
     for metric in metrics:
@@ -496,15 +523,15 @@ def bestWilcoxonRank(
                 med1 = global_data[j][1][x][1]
                 set2 = global_data[j][0][y]
                 med2 = global_data[j][1][y][1]
-                #handle error when metric values are equal for both algorithms
+                # handle error when metric values are equal for both algorithms
                 if set1.equals(set2):  # Check if all nums are equal in sets
                     result = ["NA", 1]
                 else:
                     try:
                         result = stats.wilcoxon(set1, set2)
                     except:
-                        result = ['NA_error', 1]
-                #Summarize test information in list
+                        result = ["NA_error", 1]
+                # Summarize test information in list
                 tempList.append(str(metric))
                 tempList.append("D" + str(x + 1))
                 tempList.append("D" + str(y + 1))
@@ -560,10 +587,14 @@ def dataCompareBPAll(
             )
             rownames = data.index.values  # makes a list of algorithm names from file
             rownames = list(rownames)
-            #Grab data in metric column
-            col = data[metric] #Dataframe of average target metric values for each algorithm
-            colList = data[metric].tolist() #List of average target metric values for each algorithm
-            for j in range(len(rownames)): #For each algorithm
+            # Grab data in metric column
+            col = data[
+                metric
+            ]  # Dataframe of average target metric values for each algorithm
+            colList = data[
+                metric
+            ].tolist()  # List of average target metric values for each algorithm
+            for j in range(len(rownames)):  # For each algorithm
                 alg_values_dict[rownames[j]].append(colList[j])
             # Create dataframe of average target metric where columns are datasets, and rows are algorithms
             df = pd.concat([df, col], axis=1)

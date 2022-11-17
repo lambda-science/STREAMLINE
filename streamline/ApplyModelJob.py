@@ -31,26 +31,53 @@ from sklearn.impute import IterativeImputer
 from sklearn.metrics import roc_curve, auc, precision_recall_curve
 from sklearn import metrics
 from scipy import stats
-#from scipy import interp,stats
-from statistics import mean,stdev
 
-def job(datasetFilename,full_path,class_label,instance_label,categorical_cutoff,sig_cutoff,cv_partitions,scale_data,impute_data,primary_metric,dataset_for_rep,match_label,plot_ROC,plot_PRC,plot_metric_boxplots,export_feature_correlations,jupyterRun,multi_impute):
-    train_name = full_path.split('/')[-1] #original training data name
-    experiment_path = '/'.join(full_path.split('/')[:-1])
-    apply_name = datasetFilename.split('/')[-1].split('.')[0] #replication dataset being analyzed in this job
-    apply_ext = datasetFilename.split('/')[-1].split('.')[-1] #replication dataset file extension
-    repData = loadData(datasetFilename,apply_ext)
-    #Load Replication Dataset
+# from scipy import interp,stats
+from statistics import mean, stdev
+
+
+def job(
+    datasetFilename,
+    full_path,
+    class_label,
+    instance_label,
+    categorical_cutoff,
+    sig_cutoff,
+    cv_partitions,
+    scale_data,
+    impute_data,
+    primary_metric,
+    dataset_for_rep,
+    match_label,
+    plot_ROC,
+    plot_PRC,
+    plot_metric_boxplots,
+    export_feature_correlations,
+    jupyterRun,
+    multi_impute,
+):
+    train_name = full_path.split("/")[-1]  # original training data name
+    experiment_path = "/".join(full_path.split("/")[:-1])
+    apply_name = datasetFilename.split("/")[-1].split(".")[
+        0
+    ]  # replication dataset being analyzed in this job
+    apply_ext = datasetFilename.split("/")[-1].split(".")[
+        -1
+    ]  # replication dataset file extension
+    repData = loadData(datasetFilename, apply_ext)
+    # Load Replication Dataset
     rep_feature_list = list(repData.columns.values)
     rep_feature_list.remove(class_label)
     if match_label != "None":
         rep_feature_list.remove(match_label)
     if instance_label != "None":
         rep_feature_list.remove(instance_label)
-    #Load original training dataset (could include 'match label')
-    data_ext = dataset_for_rep.split('/')[-1].split('.')[-1] #replication dataset file extension
-    trainData = loadData(dataset_for_rep,data_ext)
-    #trainData = pd.read_csv(dataset_for_rep, na_values='NA', sep = ",")
+    # Load original training dataset (could include 'match label')
+    data_ext = dataset_for_rep.split("/")[-1].split(".")[
+        -1
+    ]  # replication dataset file extension
+    trainData = loadData(dataset_for_rep, data_ext)
+    # trainData = pd.read_csv(dataset_for_rep, na_values='NA', sep = ",")
     all_train_feature_list = list(trainData.columns.values)
     all_train_feature_list.remove(class_label)
     if match_label != "None":
@@ -161,11 +188,22 @@ def job(datasetFilename,full_path,class_label,instance_label,categorical_cutoff,
         cvRepData = repData.copy()
         # Impute dataframe based on training imputation
         if eval(impute_data):
-            try: #assumes imputation was actually run in training (i.e. user had impute_data setting as 'True')
-                cvRepData = imputeRepData(full_path,cvCount,instance_label,class_label,cvRepData,all_train_feature_list,multi_impute)
-            except: #If there was no missing data in respective dataset, thus no imputation files were created, bypass loding of imputation data. Requires new replication data to have no missing values, as there is no established internal scheme to conduct imputation.
-                print("Notice: Imputation was not conducted for the following target dataset, so imputation was not conducted for replication data: "+str(apply_name))
-        #Scale dataframe based on training scaling
+            try:  # assumes imputation was actually run in training (i.e. user had impute_data setting as 'True')
+                cvRepData = imputeRepData(
+                    full_path,
+                    cvCount,
+                    instance_label,
+                    class_label,
+                    cvRepData,
+                    all_train_feature_list,
+                    multi_impute,
+                )
+            except:  # If there was no missing data in respective dataset, thus no imputation files were created, bypass loding of imputation data. Requires new replication data to have no missing values, as there is no established internal scheme to conduct imputation.
+                print(
+                    "Notice: Imputation was not conducted for the following target dataset, so imputation was not conducted for replication data: "
+                    + str(apply_name)
+                )
+        # Scale dataframe based on training scaling
         if eval(scale_data):
             cvRepData = scaleRepData(
                 full_path,
@@ -247,9 +285,15 @@ def job(datasetFilename,full_path,class_label,instance_label,categorical_cutoff,
         repData,
     )  # can't use existing method since we need to recalculate 'no skill' line
     metrics = list(metric_dict[algorithms[0]].keys())
-    StatsJob.saveMetricMedians(full_path+'/applymodel/'+apply_name,metrics,metric_dict)
-    StatsJob.saveMetricMeans(full_path+'/applymodel/'+apply_name,metrics,metric_dict)
-    StatsJob.saveMetricStd(full_path+'/applymodel/'+apply_name,metrics,metric_dict)
+    StatsJob.saveMetricMedians(
+        full_path + "/applymodel/" + apply_name, metrics, metric_dict
+    )
+    StatsJob.saveMetricMeans(
+        full_path + "/applymodel/" + apply_name, metrics, metric_dict
+    )
+    StatsJob.saveMetricStd(
+        full_path + "/applymodel/" + apply_name, metrics, metric_dict
+    )
     if eval(plot_metric_boxplots):
         StatsJob.metricBoxplots(
             full_path + "/applymodel/" + apply_name,
@@ -292,7 +336,16 @@ def job(datasetFilename,full_path,class_label,instance_label,categorical_cutoff,
     job_file.write("complete")
     job_file.close()
 
-def imputeRepData(full_path,cvCount,instance_label,class_label,cvRepData,all_train_feature_list,multi_impute):
+
+def imputeRepData(
+    full_path,
+    cvCount,
+    instance_label,
+    class_label,
+    cvRepData,
+    all_train_feature_list,
+    multi_impute,
+):
     cvRepData.shape
     # Impute categorical features (i.e. those included in the mode_dict)
     imputeCatInfo = (
@@ -355,31 +408,58 @@ def imputeRepData(full_path,cvCount,instance_label,class_label,cvRepData,all_tra
                 cvRepData[c].fillna(median_dict[c], inplace=True)
     return impute_rep_df
 
-def scaleRepData(full_path,cvCount,instance_label,class_label,cvRepData,all_train_feature_list):
-    scaleInfo = full_path+'/scale_impute/scaler_cv'+str(cvCount)+'.pickle' #Corresponding pickle file name with scalingInfo
-    infile = open(scaleInfo,'rb')
+
+def scaleRepData(
+    full_path, cvCount, instance_label, class_label, cvRepData, all_train_feature_list
+):
+    scaleInfo = (
+        full_path + "/scale_impute/scaler_cv" + str(cvCount) + ".pickle"
+    )  # Corresponding pickle file name with scalingInfo
+    infile = open(scaleInfo, "rb")
     scaler = pickle.load(infile)
     decimal_places = 7
     infile.close()
-    #Scale target replication data
-    if instance_label == None or instance_label == 'None':
+    # Scale target replication data
+    if instance_label == None or instance_label == "None":
         x_rep = cvRepData.drop([class_label], axis=1)
     else:
         x_rep = cvRepData.drop([class_label, instance_label], axis=1)
-        inst_rep = cvRepData[instance_label]  # pull out instance labels in case they include text
+        inst_rep = cvRepData[
+            instance_label
+        ]  # pull out instance labels in case they include text
     y_rep = cvRepData[class_label]
     # Scale features (x)
-    x_rep_scaled = pd.DataFrame(scaler.transform(x_rep).round(decimal_places), columns=x_rep.columns)
+    x_rep_scaled = pd.DataFrame(
+        scaler.transform(x_rep).round(decimal_places), columns=x_rep.columns
+    )
     # Recombine x and y
-    if instance_label == None or instance_label == 'None':
-        scale_rep_df = pd.concat([pd.DataFrame(y_rep, columns=[class_label]), pd.DataFrame(x_rep_scaled, columns=all_train_feature_list)],axis=1, sort=False)
+    if instance_label == None or instance_label == "None":
+        scale_rep_df = pd.concat(
+            [
+                pd.DataFrame(y_rep, columns=[class_label]),
+                pd.DataFrame(x_rep_scaled, columns=all_train_feature_list),
+            ],
+            axis=1,
+            sort=False,
+        )
     else:
-        scale_rep_df = pd.concat([pd.DataFrame(y_rep, columns=[class_label]), pd.DataFrame(inst_rep, columns=[instance_label]),pd.DataFrame(x_rep_scaled, columns=all_train_feature_list)], axis=1, sort=False)
+        scale_rep_df = pd.concat(
+            [
+                pd.DataFrame(y_rep, columns=[class_label]),
+                pd.DataFrame(inst_rep, columns=[instance_label]),
+                pd.DataFrame(x_rep_scaled, columns=all_train_feature_list),
+            ],
+            axis=1,
+            sort=False,
+        )
     return scale_rep_df
 
-def evalModel(full_path,algAbrev,cvRepDataX,cvRepDataY,cvCount):
-    modelInfo = full_path+'/models/pickledModels/'+algAbrev+'_'+str(cvCount)+'.pickle' #Corresponding pickle file name with scalingInfo
-    infile = open(modelInfo,'rb')
+
+def evalModel(full_path, algAbrev, cvRepDataX, cvRepDataY, cvCount):
+    modelInfo = (
+        full_path + "/models/pickledModels/" + algAbrev + "_" + str(cvCount) + ".pickle"
+    )  # Corresponding pickle file name with scalingInfo
+    infile = open(modelInfo, "rb")
     model = pickle.load(infile)
     infile.close()
     # Prediction evaluation
@@ -744,13 +824,33 @@ def doPlotPRC(
         plt.close("all")
 
 
-def loadData(dataset_path,dataset_ext):
-    """ Load the target dataset given the dataset file path and respective file extension"""
-    if dataset_ext == 'csv':
-        data = pd.read_csv(dataset_path,na_values='NA',sep=',')
-    else: # txt file
-        data = pd.read_csv(dataset_path,na_values='NA',sep='\t')
+def loadData(dataset_path, dataset_ext):
+    """Load the target dataset given the dataset file path and respective file extension"""
+    if dataset_ext == "csv":
+        data = pd.read_csv(dataset_path, na_values="NA", sep=",")
+    else:  # txt file
+        data = pd.read_csv(dataset_path, na_values="NA", sep="\t")
     return data
 
-if __name__ == '__main__':
-    job(sys.argv[1],sys.argv[2],sys.argv[3],sys.argv[4],int(sys.argv[5]),float(sys.argv[6]),int(sys.argv[7]),sys.argv[8],sys.argv[9],sys.argv[10],sys.argv[11],sys.argv[12],sys.argv[13],sys.argv[14],sys.argv[15],sys.argv[16],sys.argv[17],sys.argv[18])
+
+if __name__ == "__main__":
+    job(
+        sys.argv[1],
+        sys.argv[2],
+        sys.argv[3],
+        sys.argv[4],
+        int(sys.argv[5]),
+        float(sys.argv[6]),
+        int(sys.argv[7]),
+        sys.argv[8],
+        sys.argv[9],
+        sys.argv[10],
+        sys.argv[11],
+        sys.argv[12],
+        sys.argv[13],
+        sys.argv[14],
+        sys.argv[15],
+        sys.argv[16],
+        sys.argv[17],
+        sys.argv[18],
+    )

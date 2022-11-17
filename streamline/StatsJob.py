@@ -25,7 +25,7 @@ from matplotlib import rc
 import os
 from sklearn.metrics import auc
 import csv
-from statistics import mean,median,stdev
+from statistics import mean, median, stdev
 import pickle
 import copy
 from sklearn import tree
@@ -62,14 +62,34 @@ def job(
     file = open(experiment_path + "/" + "algInfo.pickle", "rb")
     algInfo = pickle.load(file)
     file.close()
-    #Translate metric name from scikitlearn standard (currently balanced accuracy is hardcoded for use in generating FI plots due to no-skill normalization)
-    metric_term_dict = {'balanced_accuracy': 'Balanced Accuracy','accuracy': 'Accuracy','f1': 'F1_Score','recall': 'Sensitivity (Recall)','precision': 'Precision (PPV)','roc_auc': 'ROC AUC'}
+    # Translate metric name from scikitlearn standard (currently balanced accuracy is hardcoded for use in generating FI plots due to no-skill normalization)
+    metric_term_dict = {
+        "balanced_accuracy": "Balanced Accuracy",
+        "accuracy": "Accuracy",
+        "f1": "F1_Score",
+        "recall": "Sensitivity (Recall)",
+        "precision": "Precision (PPV)",
+        "roc_auc": "ROC AUC",
+    }
     metric_weight = metric_term_dict[metric_weight]
-    #Get algorithms run, specify algorithm abbreviations, colors to use for algorithms in plots, and original ordered feature name list
-    algorithms,abbrev,colors,original_headers = preparation(full_path,algInfo)
-    #Gather and summarize all evaluation metrics for each algorithm across all CVs. Returns result_table used to plot average ROC and PRC plots and metric_dict organizing all metrics over all algorithms and CVs.
-    result_table,metric_dict = primaryStats(algorithms,original_headers,cv_partitions,full_path,data_name,instance_label,class_label,abbrev,colors,plot_ROC,plot_PRC,jupyterRun)
-    #Plot ROC and PRC curves comparing average ML algorithm performance (averaged over all CVs)
+    # Get algorithms run, specify algorithm abbreviations, colors to use for algorithms in plots, and original ordered feature name list
+    algorithms, abbrev, colors, original_headers = preparation(full_path, algInfo)
+    # Gather and summarize all evaluation metrics for each algorithm across all CVs. Returns result_table used to plot average ROC and PRC plots and metric_dict organizing all metrics over all algorithms and CVs.
+    result_table, metric_dict = primaryStats(
+        algorithms,
+        original_headers,
+        cv_partitions,
+        full_path,
+        data_name,
+        instance_label,
+        class_label,
+        abbrev,
+        colors,
+        plot_ROC,
+        plot_PRC,
+        jupyterRun,
+    )
+    # Plot ROC and PRC curves comparing average ML algorithm performance (averaged over all CVs)
     if eval(jupyterRun):
         print("Generating ROC and PRC plots...")
     doPlotROC(result_table, colors, full_path, jupyterRun)
@@ -86,11 +106,11 @@ def job(
     if eval(jupyterRun):
         print("Saving Metric Summaries...")
     metrics = list(metric_dict[algorithms[0]].keys())
-    #Save metric means and standard deviations
-    saveMetricMedians(full_path,metrics,metric_dict)
-    saveMetricMeans(full_path,metrics,metric_dict)
-    saveMetricStd(full_path,metrics,metric_dict)
-    #Generate boxplots comparing algorithm performance for each standard metric, if specified by user
+    # Save metric means and standard deviations
+    saveMetricMedians(full_path, metrics, metric_dict)
+    saveMetricMeans(full_path, metrics, metric_dict)
+    saveMetricStd(full_path, metrics, metric_dict)
+    # Generate boxplots comparing algorithm performance for each standard metric, if specified by user
     if eval(plot_metric_boxplots):
         if eval(jupyterRun):
             print("Generating Metric Boxplots...")
@@ -110,39 +130,84 @@ def job(
         )
     # Prepare for feature importance visualizations
     if eval(jupyterRun):
-        print('Preparing for Model Feature Importance Plotting...')
-    fi_df_list,fi_med_list,fi_med_norm_list,med_metric_list,all_feature_list,non_zero_union_features,non_zero_union_indexes = prepFI(algorithms,full_path,abbrev,metric_dict,metric_weight) #old - 'Balanced Accuracy'
-    #Select 'top' features for composite vizualization
-    featuresToViz = selectForCompositeViz(top_model_features,non_zero_union_features,non_zero_union_indexes,algorithms,med_metric_list,fi_med_norm_list)
-    #Generate FI boxplots for each modeling algorithm if specified by user
+        print("Preparing for Model Feature Importance Plotting...")
+    (
+        fi_df_list,
+        fi_med_list,
+        fi_med_norm_list,
+        med_metric_list,
+        all_feature_list,
+        non_zero_union_features,
+        non_zero_union_indexes,
+    ) = prepFI(
+        algorithms, full_path, abbrev, metric_dict, metric_weight
+    )  # old - 'Balanced Accuracy'
+    # Select 'top' features for composite vizualization
+    featuresToViz = selectForCompositeViz(
+        top_model_features,
+        non_zero_union_features,
+        non_zero_union_indexes,
+        algorithms,
+        med_metric_list,
+        fi_med_norm_list,
+    )
+    # Generate FI boxplots for each modeling algorithm if specified by user
     if eval(plot_FI_box):
         if eval(jupyterRun):
-            print('Generating Feature Importance Boxplots and Histograms...')
-        doFIBoxplots(full_path,fi_df_list,fi_med_list,algorithms,original_headers,top_model_features,jupyterRun)
+            print("Generating Feature Importance Boxplots and Histograms...")
+        doFIBoxplots(
+            full_path,
+            fi_df_list,
+            fi_med_list,
+            algorithms,
+            original_headers,
+            top_model_features,
+            jupyterRun,
+        )
         doFI_Histogram(full_path, fi_med_list, algorithms, jupyterRun)
-    #Visualize composite FI - Currently set up to only use Balanced Accuracy for composite FI plot visualization
+    # Visualize composite FI - Currently set up to only use Balanced Accuracy for composite FI plot visualization
     if eval(jupyterRun):
-        print('Generating Composite Feature Importance Plots...')
-    #Take top feature names to vizualize and get associated feature importance values for each algorithm, and original data ordered feature names list
-    top_fi_med_norm_list,all_feature_listToViz = getFI_To_Viz_Sorted(featuresToViz,all_feature_list,algorithms,fi_med_norm_list) #If we want composite FI plots to be displayed in descenting total bar height order.
-    #Generate Normalized composite FI plot
-    composite_FI_plot(top_fi_med_norm_list, algorithms, list(colors.values()), all_feature_listToViz, 'Norm',full_path,jupyterRun, 'Normalized Median Feature Importance')
-    #Fractionate FI scores for normalized and fractionated composite FI plot
+        print("Generating Composite Feature Importance Plots...")
+    # Take top feature names to vizualize and get associated feature importance values for each algorithm, and original data ordered feature names list
+    top_fi_med_norm_list, all_feature_listToViz = getFI_To_Viz_Sorted(
+        featuresToViz, all_feature_list, algorithms, fi_med_norm_list
+    )  # If we want composite FI plots to be displayed in descenting total bar height order.
+    # Generate Normalized composite FI plot
+    composite_FI_plot(
+        top_fi_med_norm_list,
+        algorithms,
+        list(colors.values()),
+        all_feature_listToViz,
+        "Norm",
+        full_path,
+        jupyterRun,
+        "Normalized Median Feature Importance",
+    )
+    # Fractionate FI scores for normalized and fractionated composite FI plot
     ###fracLists = fracFI(top_fi_med_norm_list)
-    #Generate Normalized and Fractioned composite FI plot
+    # Generate Normalized and Fractioned composite FI plot
     ###composite_FI_plot(fracLists, algorithms, list(colors.values()), all_feature_listToViz, 'Norm_Frac',full_path,jupyterRun, 'Normalized and Fractioned Feature Importance')
-    #Weight FI scores for normalized and (model performance) weighted composite FI plot
-    weightedLists,weights = weightFI(med_metric_list,top_fi_med_norm_list)
-    #Generate Normalized and Weighted Compount FI plot
-    composite_FI_plot(weightedLists, algorithms, list(colors.values()), all_feature_listToViz, 'Norm_Weight',full_path,jupyterRun, 'Normalized and Weighted Median Feature Importance')
-    #Weight the Fractionated FI scores for normalized,fractionated, and weighted compount FI plot
+    # Weight FI scores for normalized and (model performance) weighted composite FI plot
+    weightedLists, weights = weightFI(med_metric_list, top_fi_med_norm_list)
+    # Generate Normalized and Weighted Compount FI plot
+    composite_FI_plot(
+        weightedLists,
+        algorithms,
+        list(colors.values()),
+        all_feature_listToViz,
+        "Norm_Weight",
+        full_path,
+        jupyterRun,
+        "Normalized and Weighted Median Feature Importance",
+    )
+    # Weight the Fractionated FI scores for normalized,fractionated, and weighted compount FI plot
     ###weightedFracLists = weightFracFI(fracLists,weights)
-    #Generate Normalized, Fractionated, and Weighted Compount FI plot
+    # Generate Normalized, Fractionated, and Weighted Compount FI plot
     ###composite_FI_plot(weightedFracLists, algorithms, list(colors.values()), all_feature_listToViz, 'Norm_Frac_Weight',full_path,jupyterRun, 'Normalized, Fractioned, and Weighted Feature Importance')
-    #Export phase runtime
-    saveRuntime(full_path,job_start_time)
-    #Parse all pipeline runtime files into a single runtime report
-    parseRuntime(full_path,algorithms,abbrev)
+    # Export phase runtime
+    saveRuntime(full_path, job_start_time)
+    # Parse all pipeline runtime files into a single runtime report
+    parseRuntime(full_path, algorithms, abbrev)
     # Print phase completion
     print(data_name + " phase 5 complete")
     job_file = open(
@@ -156,20 +221,22 @@ def preparation(full_path, algInfo):
     """Creates directory for all results files, decodes included ML modeling algorithms that were run, specifies figure abbreviations for algorithms
     and color to use for each algorithm in plots, and loads original ordered feature name list to use as a reference to facilitate combining feature
     importance results across cv runs where different features may have been dropped during the feature selection phase."""
-    #Create Directory
-    if not os.path.exists(full_path+'/model_evaluation'):
-        os.mkdir(full_path+'/model_evaluation')
-    #Extract the original algorithm name, abreviated name, and color to use for each algortithm run by users
+    # Create Directory
+    if not os.path.exists(full_path + "/model_evaluation"):
+        os.mkdir(full_path + "/model_evaluation")
+    # Extract the original algorithm name, abreviated name, and color to use for each algortithm run by users
     algorithms = []
     abbrev = {}
     colors = {}
     for key in algInfo:
         if algInfo[key][0]:  # If that algorithm was used
             algorithms.append(key)
-            abbrev[key] = (algInfo[key][1])
-            colors[key] = (algInfo[key][2])
-    original_headers = pd.read_csv(full_path+"/exploratory/OriginalFeatureNames.csv",sep=',').columns.values.tolist() #Get Original Headers
-    return algorithms,abbrev,colors,original_headers
+            abbrev[key] = algInfo[key][1]
+            colors[key] = algInfo[key][2]
+    original_headers = pd.read_csv(
+        full_path + "/exploratory/OriginalFeatureNames.csv", sep=","
+    ).columns.values.tolist()  # Get Original Headers
+    return algorithms, abbrev, colors, original_headers
 
 
 def primaryStats(
@@ -481,7 +548,7 @@ def primaryStats(
         dr.to_csv(filepath, header=True, index=False)
         metric_dict[algorithm] = results
 
-        #Save Median FI Stats
+        # Save Median FI Stats
         save_FI(FI_all, abbrev[algorithm], original_headers, full_path)
 
         # Store ave metrics for creating global ROC and PRC plots later
@@ -590,13 +657,20 @@ def doPlotPRC(
     else:
         plt.close("all")
 
-def saveMetricMedians(full_path,metrics,metric_dict):
-    """ Exports csv file with median metric values (over all CVs) for each ML modeling algorithm"""
-    with open(full_path+'/model_evaluation/Summary_performance_median.csv',mode='w', newline="") as file:
-        writer = csv.writer(file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-        e = ['']
+
+def saveMetricMedians(full_path, metrics, metric_dict):
+    """Exports csv file with median metric values (over all CVs) for each ML modeling algorithm"""
+    with open(
+        full_path + "/model_evaluation/Summary_performance_median.csv",
+        mode="w",
+        newline="",
+    ) as file:
+        writer = csv.writer(
+            file, delimiter=",", quotechar='"', quoting=csv.QUOTE_MINIMAL
+        )
+        e = [""]
         e.extend(metrics)
-        writer.writerow(e) #Write headers (balanced accuracy, etc.)
+        writer.writerow(e)  # Write headers (balanced accuracy, etc.)
         for algorithm in metric_dict:
             astats = []
             for l in list(metric_dict[algorithm].values()):
@@ -608,11 +682,18 @@ def saveMetricMedians(full_path,metrics,metric_dict):
             writer.writerow(toAdd)
     file.close()
 
-def saveMetricMeans(full_path,metrics,metric_dict):
-    """ Exports csv file with average metric values (over all CVs) for each ML modeling algorithm"""
-    with open(full_path+'/model_evaluation/Summary_performance_mean.csv',mode='w', newline="") as file:
-        writer = csv.writer(file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-        e = ['']
+
+def saveMetricMeans(full_path, metrics, metric_dict):
+    """Exports csv file with average metric values (over all CVs) for each ML modeling algorithm"""
+    with open(
+        full_path + "/model_evaluation/Summary_performance_mean.csv",
+        mode="w",
+        newline="",
+    ) as file:
+        writer = csv.writer(
+            file, delimiter=",", quotechar='"', quoting=csv.QUOTE_MINIMAL
+        )
+        e = [""]
         e.extend(metrics)
         writer.writerow(e)  # Write headers (balanced accuracy, etc.)
         for algorithm in metric_dict:
@@ -731,14 +812,14 @@ def wilcoxonRank(
                         set2 = metric_dict[algorithm2][metric]
                         # handle error when metric values are equal for both algorithms
                         if set1 == set2:  # Check if all nums are equal in sets
-                            report = ['NA',1]
-                        else: # Apply Wilcoxon Rank Sum test
+                            report = ["NA", 1]
+                        else:  # Apply Wilcoxon Rank Sum test
                             try:
-                                report = stats.wilcoxon(set1,set2)
+                                report = stats.wilcoxon(set1, set2)
                             except:
-                                report = ['NA_error',1]
-                        #Summarize test information in list
-                        tempstats = [algorithm1,algorithm2,report[0],report[1],'']
+                                report = ["NA_error", 1]
+                        # Summarize test information in list
+                        tempstats = [algorithm1, algorithm2, report[0], report[1], ""]
                         if report[1] < sig_cutoff:
                             tempstats[4] = "*"
                         wilcoxon_stats.append(tempstats)
@@ -781,14 +862,14 @@ def mannWhitneyU(
                         set1 = metric_dict[algorithm1][metric]
                         set2 = metric_dict[algorithm2][metric]
                         if set1 == set2:  # Check if all nums are equal in sets
-                            report = ['NA',1]
-                        else: #Apply Mann Whitney U test
+                            report = ["NA", 1]
+                        else:  # Apply Mann Whitney U test
                             try:
-                                report = stats.mannwhitneyu(set1,set2)
+                                report = stats.mannwhitneyu(set1, set2)
                             except:
-                                report = ['NA_error',1]
-                        #Summarize test information in list
-                        tempstats = [algorithm1,algorithm2,report[0],report[1],'']
+                                report = ["NA_error", 1]
+                        # Summarize test information in list
+                        tempstats = [algorithm1, algorithm2, report[0], report[1], ""]
                         if report[1] < sig_cutoff:
                             tempstats[4] = "*"
                         mann_stats.append(tempstats)
@@ -811,14 +892,22 @@ def mannWhitneyU(
             )
 
 
-def prepFI(algorithms,full_path,abbrev,metric_dict,metric_weight):
-    """ Organizes and prepares model feature importance data for boxplot and composite feature importance figure generation."""
-    #Initialize required lists
-    fi_df_list = []         # algorithm feature importance dataframe list (used to generate FI boxplots for each algorithm)
-    fi_med_list = []        # algorithm feature importance medians list (used to generate composite FI barplots)
-    med_metric_list = []    # algorithm focus metric medians list (used in weighted FI viz)
-    all_feature_list = []   # list of pre-feature selection feature names as they appear in FI reports for each algorithm
-    #Get necessary feature importance data and primary metric data (currenly only 'balanced accuracy' can be used for this)
+def prepFI(algorithms, full_path, abbrev, metric_dict, metric_weight):
+    """Organizes and prepares model feature importance data for boxplot and composite feature importance figure generation."""
+    # Initialize required lists
+    fi_df_list = (
+        []
+    )  # algorithm feature importance dataframe list (used to generate FI boxplots for each algorithm)
+    fi_med_list = (
+        []
+    )  # algorithm feature importance medians list (used to generate composite FI barplots)
+    med_metric_list = (
+        []
+    )  # algorithm focus metric medians list (used in weighted FI viz)
+    all_feature_list = (
+        []
+    )  # list of pre-feature selection feature names as they appear in FI reports for each algorithm
+    # Get necessary feature importance data and primary metric data (currenly only 'balanced accuracy' can be used for this)
     for algorithm in algorithms:
         # Get relevant feature importance info
         temp_df = pd.read_csv(
@@ -832,11 +921,13 @@ def prepFI(algorithms,full_path,abbrev,metric_dict,metric_weight):
         ):  # Should be same for all algorithm files (i.e. all original features in standard CV dataset order)
             all_feature_list = temp_df.columns.tolist()
         fi_df_list.append(temp_df)
-        fi_med_list.append(temp_df.median().tolist()) #Saves median FI scores over CV runs
+        fi_med_list.append(
+            temp_df.median().tolist()
+        )  # Saves median FI scores over CV runs
         # Get relevant metric info
         medBA = median(metric_dict[algorithm][metric_weight])
         med_metric_list.append(medBA)
-    #Normalize Median Feature importance scores so they fall between (0 - 1)
+    # Normalize Median Feature importance scores so they fall between (0 - 1)
     fi_med_norm_list = []
     for each in fi_med_list:  # each algorithm
         normList = []
@@ -848,9 +939,11 @@ def prepFI(algorithms,full_path,abbrev,metric_dict,metric_weight):
             else:
                 normList.append((each[i]) / (max(each)))
         fi_med_norm_list.append(normList)
-    #Identify features with non-zero medians (step towards excluding features that had zero feature importance for all algorithms)
-    alg_non_zero_FI_list = [] #stores list of feature name lists that are non-zero for each algorithm
-    for each in fi_med_list: # each algorithm
+    # Identify features with non-zero medians (step towards excluding features that had zero feature importance for all algorithms)
+    alg_non_zero_FI_list = (
+        []
+    )  # stores list of feature name lists that are non-zero for each algorithm
+    for each in fi_med_list:  # each algorithm
         temp_non_zero_list = []
         for i in range(len(each)):  # each feature
             if each[i] > 0.0:
@@ -867,8 +960,16 @@ def prepFI(algorithms,full_path,abbrev,metric_dict,metric_weight):
     non_zero_union_indexes = []
     for i in non_zero_union_features:
         non_zero_union_indexes.append(all_feature_list.index(i))
-    #return fi_df_list,fi_ave_list,fi_ave_norm_list,ave_metric_list,all_feature_list,non_zero_union_features,non_zero_union_indexes
-    return fi_df_list,fi_med_list,fi_med_norm_list,med_metric_list,all_feature_list,non_zero_union_features,non_zero_union_indexes
+    # return fi_df_list,fi_ave_list,fi_ave_norm_list,ave_metric_list,all_feature_list,non_zero_union_features,non_zero_union_indexes
+    return (
+        fi_df_list,
+        fi_med_list,
+        fi_med_norm_list,
+        med_metric_list,
+        all_feature_list,
+        non_zero_union_features,
+        non_zero_union_indexes,
+    )
 
 
 def selectForCompositeViz(
@@ -916,14 +1017,23 @@ def selectForCompositeViz(
         featuresToViz = scoreSumDict_features
     return featuresToViz  # list of feature names to vizualize in composite FI plots.
 
-def doFIBoxplots(full_path,fi_df_list,fi_med_list,algorithms,original_headers,top_model_features, jupyterRun):
-    """ Generate individual feature importance boxplots for each algorithm """
+
+def doFIBoxplots(
+    full_path,
+    fi_df_list,
+    fi_med_list,
+    algorithms,
+    original_headers,
+    top_model_features,
+    jupyterRun,
+):
+    """Generate individual feature importance boxplots for each algorithm"""
     algorithmCounter = 0
-    for algorithm in algorithms: #each algorithms
-        #Make median feature importance score dicitonary
+    for algorithm in algorithms:  # each algorithms
+        # Make median feature importance score dicitonary
         scoreDict = {}
         counter = 0
-        for med_score in fi_med_list[algorithmCounter]: #each feature
+        for med_score in fi_med_list[algorithmCounter]:  # each feature
             scoreDict[original_headers[counter]] = med_score
             counter += 1
         # Sort features by decreasing score
@@ -941,35 +1051,53 @@ def doFIBoxplots(full_path,fi_df_list,fi_med_list,algorithms,original_headers,to
         fig = plt.figure(figsize=(15, 4))
         boxplot = viz_df.boxplot(rot=90)
         plt.title(algorithm)
-        plt.ylabel('Median Feature Importance')
-        plt.xlabel('Features')
-        plt.xticks(np.arange(1, len(featuresToViz) + 1), featuresToViz, rotation='vertical')
-        plt.savefig(full_path+'/model_evaluation/feature_importance/' + algorithm + '_boxplot',bbox_inches="tight")
+        plt.ylabel("Median Feature Importance")
+        plt.xlabel("Features")
+        plt.xticks(
+            np.arange(1, len(featuresToViz) + 1), featuresToViz, rotation="vertical"
+        )
+        plt.savefig(
+            full_path
+            + "/model_evaluation/feature_importance/"
+            + algorithm
+            + "_boxplot",
+            bbox_inches="tight",
+        )
         if eval(jupyterRun):
             plt.show()
         else:
-            plt.close('all')    #Identify and sort (decreaseing) features with top median FI
+            plt.close(
+                "all"
+            )  # Identify and sort (decreaseing) features with top median FI
         algorithmCounter += 1
 
+
 def doFI_Histogram(full_path, fi_med_list, algorithms, jupyterRun):
-    """ Generate histogram showing distribution of median feature importances scores for each algorithm. """
+    """Generate histogram showing distribution of median feature importances scores for each algorithm."""
     algorithmCounter = 0
-    for algorithm in algorithms: #each algorithms
+    for algorithm in algorithms:  # each algorithms
         medScores = fi_med_list[algorithmCounter]
-        #Plot a histogram of average feature importance
-        plt.hist(medScores,bins=100)
+        # Plot a histogram of average feature importance
+        plt.hist(medScores, bins=100)
         plt.xlabel("Median Feature Importance")
         plt.ylabel("Frequency")
-        plt.title("Histogram of Median Feature Importance for "+str(algorithm))
-        plt.xticks(rotation = 'vertical')
-        plt.savefig(full_path+'/model_evaluation/feature_importance/' + algorithm + '_histogram',bbox_inches="tight")
+        plt.title("Histogram of Median Feature Importance for " + str(algorithm))
+        plt.xticks(rotation="vertical")
+        plt.savefig(
+            full_path
+            + "/model_evaluation/feature_importance/"
+            + algorithm
+            + "_histogram",
+            bbox_inches="tight",
+        )
         if eval(jupyterRun):
             plt.show()
         else:
             plt.close("all")
 
-def getFI_To_Viz_Sorted(featuresToViz,all_feature_list,algorithms,fi_med_norm_list):
-    """ Takes a list of top features names for vizualization, gets their indexes. In every composite FI plot features are ordered the same way
+
+def getFI_To_Viz_Sorted(featuresToViz, all_feature_list, algorithms, fi_med_norm_list):
+    """Takes a list of top features names for vizualization, gets their indexes. In every composite FI plot features are ordered the same way
     they are selected for vizualization (i.e. normalized and performance weighted). Because of this feature bars are only perfectly ordered in
     descending order for the normalized + performance weighted composite plot."""
     # Get original feature indexs for selected feature names
@@ -977,14 +1105,16 @@ def getFI_To_Viz_Sorted(featuresToViz,all_feature_list,algorithms,fi_med_norm_li
     for i in featuresToViz:
         feature_indexToViz.append(all_feature_list.index(i))
     # Create list of top feature importance values in original dataset feature order
-    top_fi_med_norm_list = [] #feature importance values of top features for each algorithm (list of lists)
+    top_fi_med_norm_list = (
+        []
+    )  # feature importance values of top features for each algorithm (list of lists)
     for i in range(len(algorithms)):
         tempList = []
-        for j in feature_indexToViz: #each top feature index
-            tempList.append(fi_med_norm_list[i][j]) #add corresponding FI value
+        for j in feature_indexToViz:  # each top feature index
+            tempList.append(fi_med_norm_list[i][j])  # add corresponding FI value
         top_fi_med_norm_list.append(tempList)
     all_feature_listToViz = featuresToViz
-    return top_fi_med_norm_list,all_feature_listToViz
+    return top_fi_med_norm_list, all_feature_listToViz
 
 
 def composite_FI_plot(
@@ -1063,14 +1193,15 @@ def composite_FI_plot(
     else:
         plt.close("all")
 
+
 def fracFI(top_fi_med_norm_list):
-    """ Transforms feature scores so that they sum to 1 over all features for a given algorithm.  This way the normalized and fracionated composit bar plot
+    """Transforms feature scores so that they sum to 1 over all features for a given algorithm.  This way the normalized and fracionated composit bar plot
     offers equal total bar area for every algorithm. The intuition here is that if an algorithm gives the same FI scores for all top features it won't be
     overly represented in the resulting plot (i.e. all features can have the same maximum feature importance which might lead to the impression that an
     algorithm is working better than it is.) Instead, that maximum 'bar-real-estate' has to be divided by the total number of features. Notably, this
     transformation has the potential to alter total algorithm FI bar height ranking of features."""
     fracLists = []
-    for each in top_fi_med_norm_list: #each algorithm
+    for each in top_fi_med_norm_list:  # each algorithm
         fracList = []
         for i in range(len(each)):  # each feature
             if (
@@ -1082,13 +1213,14 @@ def fracFI(top_fi_med_norm_list):
         fracLists.append(fracList)
     return fracLists
 
-def weightFI(med_metric_list,top_fi_med_norm_list):
-    """ Weights the feature importance scores by algorithm performance (intuitive because when interpreting feature importances we want to place more weight on better performing algorithms) """
+
+def weightFI(med_metric_list, top_fi_med_norm_list):
+    """Weights the feature importance scores by algorithm performance (intuitive because when interpreting feature importances we want to place more weight on better performing algorithms)"""
     # Prepare weights
     weights = []
     # replace all balanced accuraces <=.5 with 0 (i.e. these are no better than random chance)
     for i in range(len(med_metric_list)):
-        if med_metric_list[i] <= .5:
+        if med_metric_list[i] <= 0.5:
             med_metric_list[i] = 0
     # normalize balanced accuracies
     for i in range(len(med_metric_list)):
@@ -1098,7 +1230,7 @@ def weightFI(med_metric_list,top_fi_med_norm_list):
             weights.append((med_metric_list[i] - 0.5) / 0.5)
     # Weight normalized feature importances
     weightedLists = []
-    for i in range(len(top_fi_med_norm_list)): #each algorithm
+    for i in range(len(top_fi_med_norm_list)):  # each algorithm
         weightList = np.multiply(weights[i], top_fi_med_norm_list[i]).tolist()
         weightedLists.append(weightList)
     return weightedLists, weights

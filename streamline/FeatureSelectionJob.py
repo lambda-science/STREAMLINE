@@ -154,11 +154,18 @@ def reportAveFS(
     # Load and manage feature importance scores ------------------------------------------------------------------
     counter = 0
     cv_keep_list = []
-    feature_name_ranks = [] #stores sorded feature importance dictionaries for all CVs
+    feature_name_ranks = []  # stores sorded feature importance dictionaries for all CVs
     cv_score_dict = {}
-    for i in range(0,cv_partitions):
-        scoreInfo = full_path+"/feature_selection/"+algorithmlabel+"/pickledForPhase4/"+str(i)+'.pickle'
-        file = open(scoreInfo, 'rb')
+    for i in range(0, cv_partitions):
+        scoreInfo = (
+            full_path
+            + "/feature_selection/"
+            + algorithmlabel
+            + "/pickledForPhase4/"
+            + str(i)
+            + ".pickle"
+        )
+        file = open(scoreInfo, "rb")
         rawData = pickle.load(file)
         file.close()
         scoreDict = rawData[
@@ -168,7 +175,7 @@ def reportAveFS(
             2
         ]  # dictionary of feature importances scores (in decreasing order)
         feature_name_ranks.append(score_sorted_features)
-        #update cv_Score_dict so there is a list of scores (from CV runs) for each feature
+        # update cv_Score_dict so there is a list of scores (from CV runs) for each feature
         if counter == 0:
             cv_score_dict = copy.deepcopy(scoreDict)
             for each in cv_score_dict:
@@ -211,35 +218,50 @@ def reportAveFS(
         # Sort averages (decreasing order and print top 'n' and plot top 'n'
         f_names = []
         f_scores = []
-        #for each in scoreSum:
+        # for each in scoreSum:
         for each in cv_score_dict:
             f_names.append(each)
-            #f_scores.append(scoreSum[each])
+            # f_scores.append(scoreSum[each])
             f_scores.append(cv_score_dict[each])
-        names_scores = {'Names': f_names, 'Scores': f_scores}
+        names_scores = {"Names": f_names, "Scores": f_scores}
         ns = pd.DataFrame(names_scores)
         ns = ns.sort_values(by="Scores", ascending=False)
         # Select top 'n' to report and plot
         ns = ns.head(top_features)
         # Visualize sorted feature scores
-        ns['Scores'].plot(kind='barh', figsize=(6, 12))
-        plt.ylabel('Features')
-        plt.xlabel(str(algorithm) + ' Median Score')
-        plt.yticks(np.arange(len(ns['Names'])), ns['Names'])
-        #plt.title('Sorted Median ' + str(algorithm) + ' Scores')
-        plt.savefig((full_path+"/feature_selection/"+algorithmlabel+"/TopAverageScores.png"), bbox_inches="tight")
+        ns["Scores"].plot(kind="barh", figsize=(6, 12))
+        plt.ylabel("Features")
+        plt.xlabel(str(algorithm) + " Median Score")
+        plt.yticks(np.arange(len(ns["Names"])), ns["Names"])
+        # plt.title('Sorted Median ' + str(algorithm) + ' Scores')
+        plt.savefig(
+            (
+                full_path
+                + "/feature_selection/"
+                + algorithmlabel
+                + "/TopAverageScores.png"
+            ),
+            bbox_inches="tight",
+        )
         if eval(jupyterRun):
             plt.show()
         else:
-            plt.close('all')
-    return selected_feature_lists,meta_feature_ranks
+            plt.close("all")
+    return selected_feature_lists, meta_feature_ranks
 
-def selectFeatures(algorithms, cv_partitions, selectedFeatureLists, max_features_to_keep, metaFeatureRanks):
-    """ Identifies features to keep for each cv. If more than one feature importance algorithm was applied, collective feature selection
-        is applied so that the union of informative features is preserved. Overall, only informative features (i.e. those with a score > 0
-        are preserved). If there are more informative features than the max_features_to_keep, then only those top scoring features are preserved.
-        To reduce the feature list to some max limit, we alternate between algorithm ranked feature lists grabbing the top features from each
-        until the max limit is reached."""
+
+def selectFeatures(
+    algorithms,
+    cv_partitions,
+    selectedFeatureLists,
+    max_features_to_keep,
+    metaFeatureRanks,
+):
+    """Identifies features to keep for each cv. If more than one feature importance algorithm was applied, collective feature selection
+    is applied so that the union of informative features is preserved. Overall, only informative features (i.e. those with a score > 0
+    are preserved). If there are more informative features than the max_features_to_keep, then only those top scoring features are preserved.
+    To reduce the feature list to some max limit, we alternate between algorithm ranked feature lists grabbing the top features from each
+    until the max limit is reached."""
     cv_Selected_List = []  # final list of selected features for each cv (list of lists)
     numAlgorithms = len(algorithms)
     informativeFeatureCounts = []
