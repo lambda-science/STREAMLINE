@@ -3047,6 +3047,7 @@ def hyperparameters(
         "max_iter": [10, 1000],
         "random_state": [random_state],
     }
+
     # Decision Tree
     # https://scikit-learn.org/stable/modules/generated/sklearn.tree.DecisionTreeClassifier.html?highlight=decision%20tree%20classifier#sklearn.tree.DecisionTreeClassifier
     param_grid_DT = {
@@ -3059,6 +3060,7 @@ def hyperparameters(
         "class_weight": [None, "balanced"],
         "random_state": [random_state],
     }
+
     # Random Forest
     # https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestClassifier.html?highlight=random%20forest#sklearn.ensemble.RandomForestClassifier
     param_grid_RF = {
@@ -3073,22 +3075,24 @@ def hyperparameters(
         "class_weight": [None, "balanced"],
         "random_state": [random_state],
     }
+
     # Gradient Boosting Trees
     # https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.GradientBoostingClassifier.html?highlight=gradient%20boosting#sklearn.ensemble.GradientBoostingClassifier
     param_grid_GB = {
         "n_estimators": [10, 1000],
-        "loss": ["deviance", "exponential"],
+        "loss": ["log_loss"],
         "learning_rate": [0.0001, 0.3],
         "min_samples_leaf": [1, 50],
         "min_samples_split": [2, 50],
         "max_depth": [1, 30],
         "random_state": [random_state],
     }
-    # XG Boost (Note: Not great for large instance spaces (limited completion) and class weight balance is included as option internally (Note: uses 'seed' instead of 'random_state')
+
+    # XG Boost (Note: Not great for large instance spaces (limited completion) and class weight balance is included as option internally
     # https://xgboost.readthedocs.io/en/latest/parameter.html
     param_grid_XGB = {
         "booster": ["gbtree"],
-        "objective": ["binary:logistic"],
+        "objective": ["multi:softproba"],
         "verbosity": [0],
         "reg_lambda": [1e-8, 1.0],
         "alpha": [1e-8, 1.0],
@@ -3104,36 +3108,40 @@ def hyperparameters(
         "colsample_bytree": [0.1, 1.0],
         "nthread": [1],
         "seed": [random_state],
+        "num_class": [num_classes],
     }
-    # LG Boost (Note: class weight balance is included as option internally (still takes a while on large instance spaces)) (Note: uses 'seed' instead of 'random_state')
+
+    # LG Boost (Note: class weight balance is included as option internally (still takes a while on large instance spaces))
     # https://lightgbm.readthedocs.io/en/latest/Parameters.html
     param_grid_LGB = {
-        "objective": ["binary"],
-        "metric": ["binary_logloss"],
-        "verbosity": [-1],
+        "objective": ["multiclass"],
+        "metric": [""],
+        "verbose": [-1],
         "boosting_type": ["gbdt"],
         "num_leaves": [2, 256],
         "max_depth": [1, 30],
-        "lambda_l1": [1e-8, 10.0],
-        "lambda_l2": [1e-8, 10.0],
-        "feature_fraction": [0.4, 1.0],
-        "bagging_fraction": [0.4, 1.0],
-        "bagging_freq": [1, 7],
+        "reg_alpha": [1e-8, 10.0],
+        "reg_lambda": [1e-8, 10.0],
+        "colsample_bytree": [0.4, 1.0],
+        "subsample": [0.4, 1.0],
+        "subsample_freq": [1, 7],
         "min_child_samples": [5, 100],
         "n_estimators": [10, 1000],
-        "num_threads": [1],
-        "seed": [random_state],
+        "n_jobs": [1],
+        "random_state": [random_state],
     }
-    # CatBoost - (Note this is newly added, and further optimization to this configuration is possible) (Note: uses 'random_seed' instead of 'random_state')
+
+    # CatBoost - (Note this is newly added, and further optimization to this configuration is possible)
     # https://catboost.ai/en/docs/references/training-parameters/
     param_grid_CGB = {
         "learning_rate": [0.0001, 0.3],
         "iterations": [10, 500],
         "depth": [1, 10],
         "l2_leaf_reg": [1, 9],
-        "loss_function": ["Logloss"],
+        "loss_function": ["MultiClass"],
         "random_seed": [random_state],
     }
+
     # Support Vector Machine (Note: Very slow in large instance spaces)
     # https://scikit-learn.org/stable/modules/generated/sklearn.svm.SVC.html#sklearn.svm.SVC
     param_grid_SVM = {
@@ -3145,6 +3153,7 @@ def hyperparameters(
         "class_weight": [None, "balanced"],
         "random_state": [random_state],
     }
+
     # Artificial Neural Network (Note: Slow in large instances spaces, and poor performer in small instance spaces)
     # https://scikit-learn.org/stable/modules/generated/sklearn.neural_network.MLPClassifier.html?highlight=artificial%20neural%20network
     param_grid_ANN = {
@@ -3159,6 +3168,7 @@ def hyperparameters(
         "max_iter": [200],
         "random_state": [random_state],
     }
+
     # K-Nearest Neighbor Classifier (Note: Runs slowly in data with large instance space)
     # https://scikit-learn.org/stable/modules/generated/sklearn.neighbors.KNeighborsClassifier.html?highlight=kneighborsclassifier#sklearn.neighbors.KNeighborsClassifier
     param_grid_KNN = {
@@ -3167,6 +3177,7 @@ def hyperparameters(
         "p": [1, 5],
         "metric": ["euclidean", "minkowski"],
     }
+
     # Genetic Programming Symbolic Classifier
     # https://gplearn.readthedocs.io/en/stable/reference.html
     param_grid_GP = {
@@ -3211,6 +3222,12 @@ def hyperparameters(
         "low_memory": [True],
         "random_state": [random_state],
     }
+
+    # Learning Classifier Systems (i.e. eLCS, XCS, and ExSTraCS)
+    # https://github.com/UrbsLab/scikit-eLCS
+    # https://github.com/UrbsLab/scikit-XCS
+    # https://github.com/UrbsLab/scikit-ExSTraCS
+
     # ------------------------------------------------------------------------------------------------------------------------------------------------
     if eval(
         do_lcs_sweep

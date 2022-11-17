@@ -593,6 +593,7 @@ def primaryStats(
         mean_auc = np.mean(aucs)
         # Generate ROC Plot (including individual CV's lines, average line, and no skill line) - based on https://scikit-learn.org/stable/auto_examples/model_selection/plot_roc_crossval.html-----------------------
         if eval(plot_ROC):
+            plt.clf()
             # Set figure dimensions
             plt.rcParams["figure.figsize"] = (6, 6)
             # Plot individual CV ROC lines
@@ -662,6 +663,7 @@ def primaryStats(
         mean_pr_auc = np.mean(praucs)
         # Generate PRC Plot (including individual CV's lines, average line, and no skill line)--------------------------------------------------
         if eval(plot_PRC):
+            plt.clf()
             # Set figure dimensions
             plt.rcParams["figure.figsize"] = (6, 6)
             # Plot individual CV PRC lines
@@ -787,6 +789,7 @@ def doPlotPRC(
 ):
     # Plot summarizing average PRC across algorithms
     count = 0
+    plt.clf()
     for i in result_table.index:
         plt.plot(
             result_table.loc[i]["recall"],

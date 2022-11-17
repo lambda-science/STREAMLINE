@@ -64,7 +64,7 @@ def job(
     file.close()
     # Translate metric name from scikitlearn standard (currently balanced accuracy is hardcoded for use in generating FI plots due to no-skill normalization)
     metric_term_dict = {
-        "balanced_accuracy": "Balanced Accuracy",
+        "balanced_accuracy": "Bal Acc",
         "accuracy": "Accuracy",
         "f1": "F1_Score",
         "recall": "Sensitivity (Recall)",
@@ -389,6 +389,7 @@ def primaryStats(
         mean_auc = np.mean(aucs)
         # Generate ROC Plot (including individual CV's lines, average line, and no skill line) - based on https://scikit-learn.org/stable/auto_examples/model_selection/plot_roc_crossval.html-----------------------
         if eval(plot_ROC):
+            plt.clf()
             # Set figure dimensions
             plt.rcParams["figure.figsize"] = (6, 6)
             # Plot individual CV ROC lines
@@ -453,6 +454,7 @@ def primaryStats(
         mean_pr_auc = np.mean(praucs)
         # Generate PRC Plot (including individual CV's lines, average line, and no skill line)------------------------------------------------------------------------------------------------------------------
         if eval(plot_PRC):
+            plt.clf()
             # Set figure dimensions
             plt.rcParams["figure.figsize"] = (6, 6)
             # Plot individual CV PRC lines
@@ -585,6 +587,7 @@ def save_FI(FI_all, algorithm, globalFeatureList, full_path):
 def doPlotROC(result_table, colors, full_path, jupyterRun):
     """Generate ROC plot comparing average ML algorithm performance (over all CV training/testing sets)"""
     count = 0
+    plt.clf()
     # Plot curves for each individual ML algorithm
     for i in result_table.index:
         # plt.plot(result_table.loc[i]['fpr'],result_table.loc[i]['tpr'], color=colors[i],label="{}, AUC={:.3f}".format(i, result_table.loc[i]['auc']))
@@ -618,6 +621,7 @@ def doPlotPRC(
 ):
     """Generate PRC plot comparing average ML algorithm performance (over all CV training/testing sets)"""
     count = 0
+    plt.clf()
     # Plot curves for each individual ML algorithm
     for i in result_table.index:
         plt.plot(
@@ -745,7 +749,7 @@ def metricBoxplots(full_path, metrics, algorithms, metric_dict, jupyterRun):
         td = td.transpose()
         td.columns = algorithms
         # Generate boxplot
-        boxplot = td.boxplot(column=algorithms, rot=90)
+        # boxplot = td.boxplot(column=algorithms, rot=90)
         # Specify plot labels
         plt.ylabel(str(metric))
         plt.xlabel("ML Algorithm")

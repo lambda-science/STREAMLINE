@@ -15,7 +15,9 @@ import numpy as np
 import time
 import pandas as pd
 from sklearn.feature_selection import mutual_info_classif
-from skrebate import MultiSURF, TURF
+
+# from skrebate import MultiSURF, TURF
+from skrebate import MultiSURF
 import csv
 import pickle
 import os
@@ -193,12 +195,12 @@ def runMultiSURF(
         + str(cvCount)
         + ".csv"
     )
-    if eval(use_TURF):
-        clf = TURF(MultiSURF(n_jobs=njobs), pct=TURF_pct).fit(
-            dataFeatures, dataPhenotypes
-        )
-    else:
-        clf = MultiSURF(n_jobs=njobs).fit(dataFeatures, dataPhenotypes)
+    # if eval(use_TURF):
+    #     clf = TURF(MultiSURF(n_jobs=njobs), pct=TURF_pct).fit(
+    #         dataFeatures, dataPhenotypes
+    #     )
+    # else:
+    clf = MultiSURF(n_jobs=njobs).fit(dataFeatures, dataPhenotypes)
     scores = clf.feature_importances_
     return scores, outpath, alg_name
 

@@ -508,16 +508,16 @@ def job(experiment_path, training, rep_data_path, data_path):
                 118,
                 120,
             )
-            analy_report.image(
-                experiment_path
-                + "/"
-                + ds[n]
-                + "/model_evaluation/metricBoxplots/Compare_ROC AUC.png",
-                124,
-                118,
-                82,
-                85,
-            )
+            # analy_report.image(
+            #     experiment_path
+            #     + "/"
+            #     + ds[n]
+            #     + "/model_evaluation/metricBoxplots/Compare_ROC AUC.png",
+            #     124,
+            #     118,
+            #     82,
+            #     85,
+            # )
         else:
             analy_report.image(
                 experiment_path
@@ -530,18 +530,18 @@ def job(experiment_path, training, rep_data_path, data_path):
                 118,
                 120,
             )
-            analy_report.image(
-                experiment_path
-                + "/"
-                + train_name
-                + "/applymodel/"
-                + ds[n]
-                + "/model_evaluation/metricBoxplots/Compare_ROC AUC.png",
-                124,
-                118,
-                82,
-                85,
-            )
+            # analy_report.image(
+            #     experiment_path
+            #     + "/"
+            #     + train_name
+            #     + "/applymodel/"
+            #     + ds[n]
+            #     + "/model_evaluation/metricBoxplots/Compare_ROC AUC.png",
+            #     124,
+            #     118,
+            #     82,
+            #     85,
+            # )
 
         # PRC-------------------------------
         analy_report.x = 1
@@ -554,16 +554,16 @@ def job(experiment_path, training, rep_data_path, data_path):
                 206,
                 133,
             )  # wider to account for more text
-            analy_report.image(
-                experiment_path
-                + "/"
-                + ds[n]
-                + "/model_evaluation/metricBoxplots/Compare_PRC AUC.png",
-                138,
-                205,
-                68,
-                80,
-            )
+            # analy_report.image(
+            #     experiment_path
+            #     + "/"
+            #     + ds[n]
+            #     + "/model_evaluation/metricBoxplots/Compare_PRC AUC.png",
+            #     138,
+            #     205,
+            #     68,
+            #     80,
+            # )
         else:
             analy_report.image(
                 experiment_path
@@ -576,18 +576,18 @@ def job(experiment_path, training, rep_data_path, data_path):
                 206,
                 133,
             )  # wider to account for more text
-            analy_report.image(
-                experiment_path
-                + "/"
-                + train_name
-                + "/applymodel/"
-                + ds[n]
-                + "/model_evaluation/metricBoxplots/Compare_PRC AUC.png",
-                138,
-                205,
-                68,
-                80,
-            )
+            # analy_report.image(
+            #     experiment_path
+            #     + "/"
+            #     + train_name
+            #     + "/applymodel/"
+            #     + ds[n]
+            #     + "/model_evaluation/metricBoxplots/Compare_PRC AUC.png",
+            #     138,
+            #     205,
+            #     68,
+            #     80,
+            # )
         footer(analy_report)
 
     # NEXT PAGE(S) - Average Model Prediction Statistics--------------------------------------------------------------------------------------
@@ -1307,14 +1307,38 @@ def pubModelMedianStats(
                 sep=",",
                 index_col=0,
             )
+        # # Make list of top values for each metric
+        # metricNameList = [
+        #     "Bal Acc",
+        #     "Accuracy",
+        #     "F1 Score",
+        #     "Sensitivity (Recall)",
+        #     "Specificity",
+        #     "Precision (PPV)",
+        #     "TP",
+        #     "TN",
+        #     "FP",
+        #     "FN",
+        #     "NPV",
+        #     "LR+",
+        #     "LR-",
+        #     "ROC AUC",
+        #     "PRC AUC",
+        #     "PRC APS",
+        # ]
         # Make list of top values for each metric
         metricNameList = [
-            "Balanced Accuracy",
-            "Accuracy",
-            "F1 Score",
-            "Sensitivity (Recall)",
-            "Specificity",
-            "Precision (PPV)",
+            "Bal Acc",
+            "Acc",
+            "F1",
+            "F1W",
+            "F1M",
+            "Cohen",
+            "MCC",
+            "LL",
+            "Sens.",
+            "Spec.",
+            "Prec.",
             "TP",
             "TN",
             "FP",
@@ -1362,7 +1386,30 @@ def pubModelMedianStats(
         stats_ds.columns = range(len(stats_ds.columns))
         epw = 208  # Amount of Space (width) Avaliable
         th = analy_report.font_size
-        col_width_list = [32, 11, 11, 8, 12, 12, 10, 15, 15, 15, 15, 8, 9, 9, 8, 8, 8]
+        col_width_list = [
+            32,
+            11,
+            11,
+            10,
+            10,
+            10,
+            10,
+            10,
+            10,
+            10,
+            10,
+            10,
+            10,
+            10,
+            10,
+            10,
+            10,
+            10,
+            10,
+            10,
+            10,
+            10,
+        ]
         table1 = stats_ds.iloc[:, :18]
         table1 = table1.to_numpy()
 

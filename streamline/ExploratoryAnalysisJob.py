@@ -340,6 +340,7 @@ def countsSummary(
     """Reports various dataset counts: i.e. number of instances, total features, categorical features, quantitative features, and class counts.
     Also saves a simple bar graph of class counts."""
     # Calculate, print, and export instance and feature counts
+    plt.clf()
     fCount = data.shape[1] - 1
     if not instance_label == "None":
         fCount -= 1
